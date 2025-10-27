@@ -1,0 +1,92 @@
+.weather-section {
+  background: white;
+  padding: 30px;
+  margin: 20px 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.location-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.location-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.location-icon {
+  font-size: 24px;
+}
+
+.location-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.location-name {
+  font-size: 18px;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.location-status {
+  font-size: 13px;
+  color: #666;
+}
+
+.temperature-display {
+  text-align: right;
+}
+
+.temp-value {
+  font-size: 42px;
+  font-weight: bold;
+  color: #1a1a1a;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.temp-condition {
+  font-size: 14px;
+  color: #666;
+}
+
+.weather-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 1024px) {
+  .weather-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .weather-section {
+    padding: 20px;
+    margin: 15px;
+  }
+  
+  .weather-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .location-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .temperature-display {
+    text-align: left;
+    align-self: flex-start;
+  }
+}
+

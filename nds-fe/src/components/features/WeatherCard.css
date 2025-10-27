@@ -1,0 +1,37 @@
+.weather-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s;
+}
+
+.weather-card:hover {
+  transform: translateY(-2px);
+}
+
+.weather-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.weather-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.weather-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1a1a1a;
+  line-height: 1.2;
+}
+
+.weather-label {
+  font-size: 13px;
+  color: #666;
+  margin-top: 2px;
+}
+

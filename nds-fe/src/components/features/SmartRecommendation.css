@@ -1,0 +1,47 @@
+.smart-recommendation {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 18px 24px;
+  margin: 20px 30px;
+  background: linear-gradient(135deg, #FFF3F3 0%, #FFEBF5 100%);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-left: 4px solid #FF6B9D;
+}
+
+.recommendation-icon {
+  font-size: 36px;
+  flex-shrink: 0;
+}
+
+.recommendation-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.recommendation-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #1a1a1a;
+}
+
+.recommendation-message {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .smart-recommendation {
+    padding: 15px 20px;
+    margin: 15px;
+  }
+  
+  .recommendation-icon {
+    font-size: 28px;
+  }
+}
+
