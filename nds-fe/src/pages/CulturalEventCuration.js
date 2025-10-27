@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import WeatherSection from '../components/features/WeatherSection';
-import FilterPanel from '../components/features/FilterPanel';
 import RecommendationButtons from '../components/features/RecommendationButtons';
 import AdvancedFilters from '../components/features/AdvancedFilters';
 import { getCurrentLocation, reverseGeocode } from '../utils/geolocation';
@@ -75,13 +74,6 @@ function CulturalEventCuration() {
 
       console.log('💾 최종 데이터 저장:', finalWeatherData);
       setWeatherData(finalWeatherData);
-
-      // 미세먼지 농도에 따른 추천 메시지
-      if (finalWeatherData.pm10 > 50) {
-        setRecommendationMessage('현재 미세먼지 농도가 높아 실내 행사를 추천합니다.');
-      } else {
-        setRecommendationMessage('현재 대기질이 양호하여 실외 행사도 추천합니다.');
-      }
     } catch (error) {
       console.error('위치 또는 날씨 데이터를 가져오는데 실패했습니다:', error);
       
@@ -103,8 +95,6 @@ function CulturalEventCuration() {
       
       console.log('💾 에러 시 기본 데이터:', errorWeatherData);
       setWeatherData(errorWeatherData);
-      
-      setRecommendationMessage('현재 미세먼지 농도가 높아 실내 행사를 추천합니다.');
     }
   };
 
