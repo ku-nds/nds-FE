@@ -1,3 +1,6 @@
+const REST_API_KEY = '29da7fc58703ad7bef6aa7ca90b03deb';
+
+
 /**
  * 사용자의 현재 위치를 가져오는 유틸리티 함수
  * @returns {Promise<{latitude: number, longitude: number}>}
@@ -29,26 +32,24 @@ export const getCurrentLocation = () => {
 };
 
 /**
- * 위도와 경도를 주소로 변환 (역지오코딩)
+ * 위도와 경도를 주소 (자치구 이름 포함)로 변환 (역지오코딩)
  * @param {number} latitude 
  * @param {number} longitude 
- * @returns {Promise<string>} 주소 문자열
+ * @returns {Promise<string>} 주소 문자열 (자치구 이름 포함)
  */
 export const reverseGeocode = async (latitude, longitude) => {
   try {
-    console.log('🌍 역지오코딩 시도:', latitude, longitude);
+    console.log('역지오코딩 시도:', latitude, longitude);
     
-    // Kakao Maps API 사용 (무료)
-    const REST_API_KEY = process.env.REACT_APP_KAKAO_MAP_API_KEY;
-    
-    if (!REST_API_KEY) {
-      // API 키가 없으면 위도/경도를 간단히 표시
-      const location = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-      console.log('📍 API 키 없음, 좌표로 표시:', location);
-      return location;
+    if (!REST_API_KEY || REST_API_KEY === 'YOUR_KAKAO_REST_API_KEY') {
+      console.warn('⚠️ Kakao REST API 키가 설정되지 않았습니다. 목업 주소를 사용합니다.');
+      // API 키가 없으면 목업 데이터 반환
+      return '서울특별시 강남구 역삼동 (Mock)'; 
     }
 
+    // Kakao REST API 호출: 좌표를 행정 구역 코드로 변환 (coord2regioncode)
     const response = await fetch(
+      // Kakao API는 경도(x)와 위도(y) 순서를 요구합니다.
       `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${longitude}&y=${latitude}`,
       {
         headers: {
@@ -60,61 +61,27 @@ export const reverseGeocode = async (latitude, longitude) => {
     const data = await response.json();
     
     if (data.documents && data.documents.length > 0) {
-      const region = data.documents[0];
-      const address = `${region.region_2depth_name} ${region.region_3depth_name || ''}`.trim();
-      console.log('✅ 역지오코딩 성공:', address);
-      return address;
-    }
-
-    // API 호출은 성공했지만 결과가 없으면 좌표 반환
-    const location = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-    console.log('⚠️ 역지오코딩 결과 없음, 좌표로 표시:', location);
-    return location;
-  } catch (error) {
-    console.error('❌ 역지오코딩 실패:', error);
-    // 위도/경도로 표시
-    const location = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-    console.log('📍 좌표로 표시:', location);
-    return location;
-  }
-};
-
-/**
- * Geocoding - 주소를 위도/경도로 변환
- * @param {string} address 
- * @returns {Promise<{latitude: number, longitude: number}>}
- */
-export const geocode = async (address) => {
-  try {
-    const REST_API_KEY = process.env.REACT_APP_KAKAO_MAP_API_KEY;
-    
-    if (!REST_API_KEY) {
-      throw new Error('Kakao Maps API key is not set');
-    }
-
-    const response = await fetch(
-      `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(address)}`,
-      {
-        headers: {
-          Authorization: `KakaoAK ${REST_API_KEY}`,
-        },
+      // 'H' (행정구역) 타입의 주소를 찾습니다.
+      const regionH = data.documents.find(doc => doc.region_type === 'H'); 
+      
+      if (regionH) {
+         // 시/도, 구/군 주소를 반환합니다. (예: 서울특별시 강남구)
+         const address = `${regionH.region_1depth_name} ${regionH.region_2depth_name}`;
+         console.log('역지오코딩 성공:', address);
+         return address;
       }
-    );
-
-    const data = await response.json();
-    
-    if (data.documents && data.documents.length > 0) {
-      const location = data.documents[0];
-      return {
-        latitude: parseFloat(location.y),
-        longitude: parseFloat(location.x),
-      };
     }
 
-    throw new Error('주소를 찾을 수 없습니다');
+    // 결과가 없으면 좌표로 표시
+    const location = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+    console.warn('역지오코딩 결과 없음, 좌표로 표시:', location);
+    return location;
+
   } catch (error) {
-    console.error('지오코딩 실패:', error);
-    throw error;
+    console.error('역지오코딩 실패:', error);
+    // 에러 발생 시 좌표 반환
+    return `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
   }
 };
+
 

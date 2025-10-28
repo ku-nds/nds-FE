@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { getSeoulAirQuality, getAirQualityColor } from '../utils/seoulApi';
+import { getCurrentLocation} from '../utils/geolocation';
 import './RecommendationEvents.css';
 
 function RecommendationEvents() {
+  const [isLoading, setIsLoading] = useState(true);
+
   const path = window.location.pathname;
   const type = path.split('/')[2];
 
   const [airQualityData, setAirQualityData] = useState({
-    station: '종로구',
+    station: '로딩 중...',
     pm10: 45,
     pm25: 25,
     airQuality: '좋음',
@@ -22,18 +25,60 @@ function RecommendationEvents() {
     fetchAirQualityData();
   }, []);
 
+  // 구 이름으로 권역 매핑
+  const getRegionByGu = (guName) => {
+    const regionMap = {
+      '강남구': '남부권', '강동구': '동남권', '강북구': '북부권', '강서구': '서부권',
+      '관악구': '남부권', '광진구': '동북권', '구로구': '서부권', '금천구': '남부권',
+      '노원구': '동북권', '도봉구': '북부권', '동대문구': '동북권', '동작구': '남부권',
+      '마포구': '서부권', '서대문구': '서부권', '서초구': '남부권', '성동구': '동남권',
+      '성북구': '동북권', '송파구': '동남권', '양천구': '서부권', '영등포구': '서부권',
+      '용산구': '도심권', '은평구': '서부권', '종로구': '도심권', '중구': '도심권', '중랑구': '동북권'
+    };
+    
+    for (const [key, value] of Object.entries(regionMap)) {
+      if (guName && guName.includes(key)) return value;
+    }
+    return '도심권';
+  };
+
   const fetchAirQualityData = async () => {
     try {
-      const data = await getSeoulAirQuality('도심권');
+      // 현재 위치 가져오기
+      const { latitude, longitude } = await getCurrentLocation();
+      //const address = await reverseGeocode(latitude, longitude);
+      const address = "테스트";
+      console.log('📍 측정소 주소:', latitude + ", " + longitude);
+      
+      const region = getRegionByGu(address);
+      console.log('🗺️ 권역:', region);
+      
+      const data = await getSeoulAirQuality(region);
+      
       setAirQualityData({
-        station: data.stationName || '종로구',
+        station: data.stationName || address,
         pm10: data.pm10,
         pm25: data.pm25,
         airQuality: data.airQualityGrade,
         airQualityColor: getAirQualityColor(data.airQualityGrade)
       });
+      setIsLoading(false);
     } catch (error) {
       console.error('대기질 데이터 조회 실패:', error);
+      // 기본 도심권 데이터
+      try {
+        const data = await getSeoulAirQuality('도심권');
+        setAirQualityData({
+          station: data.stationName || '서울',
+          pm10: data.pm10,
+          pm25: data.pm25,
+          airQuality: data.airQualityGrade,
+          airQualityColor: getAirQualityColor(data.airQualityGrade)
+        });
+      } catch (fallbackError) {
+        console.error('폴백도 실패:', fallbackError);
+        setIsLoading(false);
+      }
     }
   };
 

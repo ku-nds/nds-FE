@@ -9,6 +9,7 @@ import { getSeoulAirQuality, getAirQualityColor } from '../utils/seoulApi';
 import './CulturalEventCuration.css';
 
 function CulturalEventCuration() {
+  const [isLoading, setIsLoading] = useState(true);
   const [weatherData, setWeatherData] = useState({
     location: '위치 로딩 중...',
     pm10: 81,
@@ -17,7 +18,7 @@ function CulturalEventCuration() {
     airQuality: '나쁨',
     airQualityColor: '#F44336'
   });
-  const [recommendationMessage, setRecommendationMessage] = useState('');
+
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState({
     categories: [],
@@ -32,39 +33,39 @@ function CulturalEventCuration() {
 
 
   const fetchWeatherData = async () => {
-    console.log('🚀 fetchWeatherData 함수 실행 시작');
+    console.log('fetchWeatherData 함수 실행 시작');
     try {
-      // 1. 사용자의 현재 위치 가져오기
+      // 사용자의 현재 위치 가져오기
       const { latitude, longitude } = await getCurrentLocation();
-      console.log('📍 현재 위치:', latitude, longitude);
+      console.log('현재 위치:', latitude, longitude);
 
-      // 2. 위치를 주소로 변환 (역지오코딩)
-      const address = await reverseGeocode(latitude, longitude);
-      console.log('🏠 변환된 주소:', address);
+      // 위경도로 주소 가져오기
+      const guName = await reverseGeocode(latitude, longitude);
+
 
       // 3. 서울시 공공데이터 API에서 대기질 정보 가져오기
+      console.log('서울시 API 호출 시작...');
       let airQualityData;
       try {
-        // 주소에서 권역명 추출 (예: "강남구 역삼동" -> 도심권)
         // 간단히 도심권으로 시도
         airQualityData = await getSeoulAirQuality('도심권');
-        console.log('서울시 대기질 데이터:', airQualityData);
+        console.log('✅ 서울시 대기질 데이터 수신:', airQualityData);
       } catch (error) {
-        console.error('서울시 API 호출 실패, 기본값 사용:', error);
+        console.error('❌ 서울시 API 호출 실패:', error);
         // 기본값 설정
         airQualityData = {
           pm10: 81,
           pm25: 45,
           o3: 0.035,
           regionName: '도심권',
-          stationName: address,
           airQualityGrade: '나쁨',
           airQualityIndex: 54
         };
+        console.log('⚠️ 기본값 사용:', airQualityData);
       }
       
       const finalWeatherData = {
-        location: address || '위치 확인 중',
+        location: latitude + ", " + longitude,
         pm10: airQualityData.pm10,
         pm2_5: airQualityData.pm25,
         o3: airQualityData.o3,
@@ -72,8 +73,9 @@ function CulturalEventCuration() {
         airQualityColor: getAirQualityColor(airQualityData.airQualityGrade)
       };
 
-      console.log('💾 최종 데이터 저장:', finalWeatherData);
+      console.log('💾 최종 데이터:', finalWeatherData);
       setWeatherData(finalWeatherData);
+      console.log('setWeatherData 호출 완료');
     } catch (error) {
       console.error('위치 또는 날씨 데이터를 가져오는데 실패했습니다:', error);
       
@@ -93,7 +95,7 @@ function CulturalEventCuration() {
         airQualityColor: '#F44336'
       };
       
-      console.log('💾 에러 시 기본 데이터:', errorWeatherData);
+      console.log('에러 시 기본 데이터:', errorWeatherData);
       setWeatherData(errorWeatherData);
     }
   };
@@ -126,6 +128,7 @@ function CulturalEventCuration() {
         onUserMenuClick={handleUserMenu}
         onNotificationClick={handleNotification}
         onSettingsClick={handleSettings}
+        currentLocation={weatherData.location}
       />
       
       <main className="main-content">
