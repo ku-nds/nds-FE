@@ -9,7 +9,6 @@ import { getSeoulAirQuality, getAirQualityColor } from '../utils/seoulApi';
 import './CulturalEventCuration.css';
 
 function CulturalEventCuration() {
-  const [isLoading, setIsLoading] = useState(true);
   const [weatherData, setWeatherData] = useState({
     location: '위치 로딩 중...',
     pm10: 81,
@@ -47,11 +46,11 @@ function CulturalEventCuration() {
       console.log('서울시 API 호출 시작...');
       let airQualityData;
       try {
-        // 간단히 도심권으로 시도
-        airQualityData = await getSeoulAirQuality('도심권');
-        console.log('✅ 서울시 대기질 데이터 수신:', airQualityData);
+        // TODO 서울시를 빼고
+        airQualityData = await getSeoulAirQuality('guName');
+        console.log('서울시 대기질 데이터 수신:', airQualityData);
       } catch (error) {
-        console.error('❌ 서울시 API 호출 실패:', error);
+        console.error('서울시 API 호출 실패:', error);
         // 기본값 설정
         airQualityData = {
           pm10: 81,
@@ -61,11 +60,11 @@ function CulturalEventCuration() {
           airQualityGrade: '나쁨',
           airQualityIndex: 54
         };
-        console.log('⚠️ 기본값 사용:', airQualityData);
+        console.log('기본값 사용:', airQualityData);
       }
       
       const finalWeatherData = {
-        location: latitude + ", " + longitude,
+        location: guName,
         pm10: airQualityData.pm10,
         pm2_5: airQualityData.pm25,
         o3: airQualityData.o3,
@@ -73,7 +72,7 @@ function CulturalEventCuration() {
         airQualityColor: getAirQualityColor(airQualityData.airQualityGrade)
       };
 
-      console.log('💾 최종 데이터:', finalWeatherData);
+      console.log('최종 데이터:', finalWeatherData);
       setWeatherData(finalWeatherData);
       console.log('setWeatherData 호출 완료');
     } catch (error) {
@@ -84,7 +83,7 @@ function CulturalEventCuration() {
         ? '위치 권한 요청 시간 초과'
         : error.message?.includes('denied')
         ? '위치 권한이 거부되었습니다'
-        : '강남구 역삼동'; // 기본값
+        : '서울시 강남구'; // 기본값
       
       const errorWeatherData = {
         location: defaultLocation,
