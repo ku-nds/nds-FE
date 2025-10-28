@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { useLocation } from 'react-router-dom';
@@ -9,7 +10,6 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
     // 전달 받은 state 데이터 수신
     const location = useLocation();
     const { state } = location; 
-    
     // 전달받은 데이터 추출 및 안전한 기본값 설정
     const { 
         guName, 
@@ -21,7 +21,46 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
     // 데이터가 유효한지 확인하는 로딩 상태
     const [isLoading, setIsLoading] = useState(!weatherData); 
 
+    // api로 받은 행사 목록 및 로딩 상태
+    const [events, setEvents] = useState([]); // 행사 목록 상태
+    const [isFetching, setIsFetching] = useState(false); // 이벤트 목록 로딩 상태
+    const [fetchError, setFetchError] = useState(''); // 이벤트 목록 에러 상태
+
     const [selectedPlaceType, setSelectedPlaceType] = useState('all');
+
+    //api 호출 함수
+    const fetchEvents = useCallback(async (type) => {
+        setIsFetching(true);
+        setFetchError('');
+        setEvents([]);
+
+        try {
+            // 프록시 설정을 통해 http://localhost:8080/api/place-festivals로 요청됩니다.
+            const apiUrl = `/api/place-festivals?type=${type}`;
+            
+            console.log(`[API CALL] 행사 목록 요청: ${apiUrl}`);
+            
+            // Axios를 사용하여 Express.js 백엔드 API 호출
+            const response = await axios.get(apiUrl);
+
+            if (response.data.count === 0) {
+                setFetchError('선택한 조건에 맞는 행사가 없습니다.');
+            } else {
+                setEvents(response.data.data);
+                setFetchError('');
+            }
+        } catch (error) {
+            console.error('백엔드 API 호출 실패:', error);
+            setFetchError('행사 목록을 불러오는 중 서버 오류가 발생했습니다.');
+        } finally {
+            setIsFetching(false);
+        }
+    }, []);
+
+    const handlePlaceTypeClick = (type) => {
+        setSelectedPlaceType(type);
+        fetchEvents(type); // 즉시 새로운 타입으로 API 호출
+    };
 
     useEffect(() => {
         if (!weatherData) {
@@ -33,12 +72,30 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
             setIsLoading(false);
             // 대기질에 따라 초기 필터 설정 (옵션)
             if ((weatherData.pm10 || 0) >= 81) {
-                 setSelectedPlaceType('indoor');
+                setSelectedPlaceType('indoor');
             } else {
-                 setSelectedPlaceType('outdoor');
+                setSelectedPlaceType('outdoor');
             }
         }
-    }, [weatherData]);
+
+        //초기 타입 결정하여 이벤트 데이터 로딩
+        let initialType;
+        const pm10Value = weatherData.pm10 || 0;
+
+        if (pm10Value >= 81) {
+            initialType = 'indoor'; 
+        } else {
+            initialType = 'outdoor'; 
+        }
+        
+        //초기 상태 설정
+        setSelectedPlaceType(initialType);
+        //초기 데이터 호출 실행
+        fetchEvents(initialType);
+        //초기 로딩 상태 종료
+        setIsLoading(false);
+
+    }, [weatherData, fetchEvents]);
 
 
     const getRecommendationMessage = () => {
@@ -115,10 +172,9 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
                 <section className="place-type-section">
                     <h2 className="section-title">장소 유형 선택</h2>
                     <div className="place-type-buttons">
-                        <button className={`place-type-btn ${selectedPlaceType === 'all' ? 'active' : ''}`} onClick={() => setSelectedPlaceType('all')}>전체</button>
-                        <button className={`place-type-btn ${selectedPlaceType === 'indoor' ? 'active' : ''}`} onClick={() => setSelectedPlaceType('indoor')}>🏠 실내</button>
-                        <button className={`place-type-btn ${selectedPlaceType === 'outdoor' ? 'active' : ''}`} onClick={() => setSelectedPlaceType('outdoor')}>☀️ 실외</button>
-                    </div>
+                        <button className={`place-type-btn ${selectedPlaceType === 'all' ? 'active' : ''}`} onClick={() => handlePlaceTypeClick('general')}>전체</button>
+                        <button className={`place-type-btn ${selectedPlaceType === 'indoor' ? 'active' : ''}`} onClick={() => handlePlaceTypeClick('indoor')}>🏠 실내</button>
+                        <button className={`place-type-btn ${selectedPlaceType === 'outdoor' ? 'active' : ''}`} onClick={() => handlePlaceTypeClick('outdoor')}>☀️ 실외</button>    </div>
                 </section>
 
                 {/* 3. 행사 목록 섹션 (백엔드 Axios 호출 필요) */}
@@ -128,10 +184,17 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
                         <button className="sort-button">가까운 순으로 정렬</button>
                     </div>
                     <div className="events-list-content">
-                        <div className="no-events">
-                            {/* TODO: 여기에서 selectedPlaceType과 region/gu를 백엔드에 전달하여 필터링된 행사를 받아와야 합니다. */}
-                            행사 데이터 준비 중입니다.
-                        </div>
+                        {/* 에러 메시지 표시 */}
+                        {fetchError && <div className="no-events text-red-600 bg-red-50 border border-red-200">{fetchError}</div>}
+                        
+                        {/* 행사 목록 렌더링 */}
+                        {!fetchError && events.length > 0 ? (
+                            <div className="events-grid">
+                                {events.map(event => <EventCard key={event.id} event={event} />)}
+                            </div>
+                        ) : (
+                            !fetchError && <div className="no-events">선택한 조건에 맞는 행사가 없습니다.</div>
+                        )}
                     </div>
                 </section>
             </main>
@@ -139,5 +202,16 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
         </div>
     );
 }
+
+const EventCard = ({ event }) => (
+    <div className="event-card p-4 border rounded-lg shadow-sm bg-white hover:shadow-md transition duration-150">
+        <h3 className="font-semibold text-blue-600 text-lg mb-1">{event.event_name}</h3>
+        <p className="text-sm text-gray-500 mb-2">{event.place} ({event.district})</p>
+        <div className="text-xs text-gray-700">
+            <p>유형: {event.category}</p>
+            <p>기간: {new Date(event.start_date).toLocaleDateString()} ~ {new Date(event.end_date).toLocaleDateString()}</p>
+        </div>
+    </div>
+);
 
 export default PlaceTypeEvents;
