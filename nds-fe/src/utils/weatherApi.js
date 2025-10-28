@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-// OpenWeatherMap API 인증키
-const OPENWEATHER_API_KEY = 'dc1376f6d3fadcc305bd24a8eebc647a';
+const OPENWEATHER_API_KEY = process.env.REACT_APP_OPENWEATHER_API_KEY;
 
 /**
  * OpenWeatherMap API를 사용해서 실제 날씨 데이터 가져오기

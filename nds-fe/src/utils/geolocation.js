@@ -1,5 +1,5 @@
-const REST_API_KEY = '29da7fc58703ad7bef6aa7ca90b03deb';
 
+const REST_API_KEY = process.env.REACT_APP_KAKAO_REST_API_KEY;
 
 /**
  * 사용자의 현재 위치를 가져오는 유틸리티 함수

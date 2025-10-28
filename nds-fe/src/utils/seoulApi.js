@@ -1,7 +1,7 @@
 // src/utils/seoulApi.js
 import axios from 'axios';
 
-const SEOUL_API_KEY = '6668774c686a68793132344a51496172';
+const SEOUL_API_KEY = process.env.REACT_APP_SEOUL_API_KEY;
 
 /**
  * 서울시 실시간 대기질 정보 조회 (견고한 XML 파싱)
