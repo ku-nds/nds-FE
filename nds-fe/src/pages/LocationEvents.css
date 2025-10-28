@@ -1,0 +1,48 @@
+/* LocationEvents.css */
+/* Tailwind CSS 사용 환경이므로 최소한의 기본 스타일만 정의합니다. */
+.coming-soon-container {
+    text-align: center;
+    padding: 3rem;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-top: 3rem;
+}
+
+.coming-soon-container .icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.coming-soon-container h1 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #1e3a8a;
+    margin-bottom: 0.5rem;
+}
+
+.status-box {
+    display: inline-block;
+    background-color: #fffbe6;
+    color: #b45309;
+    padding: 0.5rem 1rem;
+    border: 2px solid #fde047;
+    border-radius: 8px;
+    font-weight: bold;
+    margin: 1rem 0;
+}
+
+.back-button {
+    background: none;
+    border: 1px solid #ccc;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 0.9rem;
+}
+
+.back-button:hover {
+    background-color: #e2e8f0;
+}
