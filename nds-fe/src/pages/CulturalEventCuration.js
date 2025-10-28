@@ -6,6 +6,7 @@ import RecommendationButtons from '../components/features/RecommendationButtons'
 import AdvancedFilters from '../components/features/AdvancedFilters';
 import { getCurrentLocation, reverseGeocode } from '../utils/geolocation';
 import { getSeoulAirQuality, getAirQualityColor } from '../utils/seoulApi';
+import { mapAddressToRegion } from '../utils/regionMapper';
 import './CulturalEventCuration.css';
 
 function CulturalEventCuration() {
@@ -40,14 +41,17 @@ function CulturalEventCuration() {
 
       // 위경도로 주소 가져오기
       const guName = await reverseGeocode(latitude, longitude);
-
+      
+      //주소를 서울 api 용으로 변경
+      const {region, gu} = mapAddressToRegion(guName);
+      console.log('추출된 gu, region => ', gu, region);
 
       // 3. 서울시 공공데이터 API에서 대기질 정보 가져오기
       console.log('서울시 API 호출 시작...');
       let airQualityData;
       try {
-        // TODO 서울시를 빼고
-        airQualityData = await getSeoulAirQuality('guName');
+        // 추출된 값으로 대기질 정보 api 요청
+        airQualityData = await getSeoulAirQuality(region, gu);
         console.log('서울시 대기질 데이터 수신:', airQualityData);
       } catch (error) {
         console.error('서울시 API 호출 실패:', error);
@@ -83,7 +87,7 @@ function CulturalEventCuration() {
         ? '위치 권한 요청 시간 초과'
         : error.message?.includes('denied')
         ? '위치 권한이 거부되었습니다'
-        : '서울시 강남구'; // 기본값
+        : '서울특별시 강남구'; // 기본값
       
       const errorWeatherData = {
         location: defaultLocation,
