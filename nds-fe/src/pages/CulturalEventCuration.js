@@ -27,6 +27,8 @@ function CulturalEventCuration() {
     timeRange: 'all'
   });
 
+  const [position, setPosition] = useState({ latitude: null, longitude: null, guName: null, region: null, gu: null });
+
   useEffect(() => {
     fetchWeatherData();
   }, []);
@@ -46,7 +48,9 @@ function CulturalEventCuration() {
       const {region, gu} = mapAddressToRegion(guName);
       console.log('추출된 gu, region => ', gu, region);
 
-      // 3. 서울시 공공데이터 API에서 대기질 정보 가져오기
+      setPosition({ latitude, longitude, guName, region, gu });
+
+      // 서울시 공공데이터 API에서 대기질 정보 가져오기
       console.log('서울시 API 호출 시작...');
       let airQualityData;
       try {
@@ -144,7 +148,14 @@ function CulturalEventCuration() {
           airQualityColor={weatherData.airQualityColor}
         />
         
-        <RecommendationButtons />
+        <RecommendationButtons
+          weatherData={weatherData}
+          guName={position.guName}
+          latitude={position.latitude}
+          longitude={position.longitude}
+          region={position.region}
+          gu={position.gu}
+        />
       </main>
 
       <Footer />

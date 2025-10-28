@@ -1,9 +1,22 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './RecommendationButtons.css';
 
-function RecommendationButtons() {
+function RecommendationButtons({ weatherData, guName, latitude, longitude, region, gu }) {
+  const navigate = useNavigate();
+
   const handleCardClick = (type) => {
-    window.location.href = `/events/${type}`;
+    // 경로와 함께 state 전달
+    navigate(`/events/${type}`, {
+      state: {
+        latitude: latitude,
+        longitude: longitude,
+        guName: guName,
+        weatherData: weatherData, // 현재 대기질 정보 전체
+        region: region,
+        gu: gu
+      }
+    });
   };
 
   return (
