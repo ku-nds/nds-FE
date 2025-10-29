@@ -218,7 +218,7 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
                 <section className="events-list-section">
                     <div className="events-list-header">
                         <h2 className="section-title">전체 행사</h2>
-                        <button className="sort-button">가까운 순으로 정렬</button>
+                        {/*<button className="sort-button">가까운 순으로 정렬</button>*/}
                     </div>
                     <div className="events-list-content">
                         {/* 에러/경고 배너는 항상 보여줌 */}
