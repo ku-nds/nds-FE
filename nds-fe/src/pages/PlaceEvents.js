@@ -7,73 +7,7 @@ import EventDetailModal from '../components/features/EventDetailModal';
 import './PlaceEvents.css';
 
 
-const MOCK_FESTIVALS = [
-    {
-    "id": 101,
-    "event_name": "현대미술 특별전: 디지털 아트의 미래",
-    "category": "전시",
-    "district": "종로구",
-    "place": "국립현대미술관 서울관",
-    "organizer": "국립현대미술관",
-    "start_date": "2025-04-20T00:00:00.000Z",
-    "end_date": "2025-07-15T00:00:00.000Z",
-    "datetime_info": "매일 10:00~18:00 (월요일 휴관)",
-    "homepage": "http://www.moca.go.kr",
-    "main_image": "https://i.ibb.co/3q4V1gQ/exhibit-indoor.jpg", // 실내 이미지 (임시)
-    "is_free": "N",
-    "distance": 1.8, // 임시 거리 (프론트엔드 표시용)
-    // 💡 아래 필드는 상세조회 시 필요하지만, 카드 표시를 위해 임시로 추가
-    "type_info": "실내" 
-    },
-    {
-    "id": 102,
-    "event_name": "북촌 한옥마을 문화체험",
-    "category": "지역축제",
-    "district": "종로구",
-    "place": "북촌한옥마을",
-    "organizer": "서울시 북촌센터",
-    "start_date": "2025-05-01T00:00:00.000Z",
-    "end_date": "2025-05-31T00:00:00.000Z",
-    "datetime_info": "주말 11:00~16:00",
-    "homepage": "http://bukchon.seoul.go.kr",
-    "main_image": "https://i.ibb.co/N7B9zYw/hanok-outdoor.jpg", // 실외 이미지 (임시)
-    "is_free": "Y",
-    "distance": 2.1,
-    "type_info": "실외" 
-    },
-    {
-    "id": 103,
-    "event_name": "서울 재즈 페스티벌 2024",
-    "category": "음악",
-    "district": "송파구",
-    "place": "올림픽공원",
-    "organizer": "프라이빗 주식회사",
-    "start_date": "2025-05-15T00:00:00.000Z",
-    "end_date": "2025-05-17T00:00:00.000Z",
-    "datetime_info": "18:00 시작",
-    "homepage": null,
-    "main_image": "https://i.ibb.co/L8G7R2w/jazz-outdoor.jpg", // 실외 이미지 (임시)
-    "is_free": "N",
-    "distance": 2.3,
-    "type_info": "실외" 
-    },
-    {
-    "id": 104,
-    "event_name": "한강 벚꽃 축제",
-    "category": "지역축제",
-    "district": "영등포구",
-    "place": "여의도 한강공원",
-    "organizer": "영등포구청",
-    "start_date": "2025-04-05T00:00:00.000Z",
-    "end_date": "2025-04-14T00:00:00.000Z",
-    "datetime_info": "종일 운영",
-    "homepage": null,
-    "main_image": "https://i.ibb.co/T5w9Y2V/cherry-blossom-outdoor.jpg", // 실외 이미지 (임시)
-    "is_free": "Y",
-    "distance": 3.1,
-    "type_info": "실외" 
-    }
-]
+
 
 function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확히 가정
 
@@ -90,7 +24,6 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
 
     // 데이터가 유효한지 확인하는 로딩 상태
     const [isLoading, setIsLoading] = useState(!weatherData); 
-
     // api로 받은 행사 목록 및 로딩 상태
     const [events, setEvents] = useState([]); // 행사 목록 상태
     const [isFetching, setIsFetching] = useState(false); // 이벤트 목록 로딩 상태
@@ -115,51 +48,40 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
         setSelectedEvent(null);
     };
 
-    //api 호출 함수
-    //TODO 받아오는 값에 따라서 변경되어야함..
-    const fetchEvents = useCallback(async (type) => {
+   
+    
+    // ✅ CORS 프록시 설정을 고려하여 상대경로 사용
+    const fetchEvents = useCallback(async (type = 'all') => {
         setIsFetching(true);
         setFetchError('');
         setEvents([]);
 
         try {
-            // 프록시 설정을 통해 http://localhost:8080/api/place-festivals로 요청됩니다.
-            const apiUrl = `/api/place-festivals?type=${type}`;
-            
-            console.log(`[API CALL] 행사 목록 요청: ${apiUrl}`);
-            
-            // Axios를 사용하여 Express.js 백엔드 API 호출
-            const response = await axios.get(apiUrl);
+            if (type === 'all' || type === 'general') {
+                const apiUrl = '/api/festivals';
+                console.log('[API CALL] 전체 행사 요청:', apiUrl);
+                const response = await axios.get(apiUrl);
 
-            if (response.data.count === 0) {
-                setFetchError('선택한 조건에 맞는 행사가 없습니다.');
+                if (!response?.data) {
+                    setFetchError('서버 응답이 올바르지 않습니다.');
+                    setEvents([]);
+                } else if (response.data.count === 0 || (Array.isArray(response.data.data) && response.data.data.length === 0)) {
+                    setFetchError('선택한 조건에 맞는 행사가 없습니다.');
+                    setEvents([]);
+                } else {
+                    setEvents(response.data.data || []);
+                    setFetchError('');
+                }
             } else {
-                setEvents(response.data.data);
-                setFetchError('');
+                // 실내/실외용 API는 추후 별도 구현 예정
+                console.log('[API CALL] 장소 유형별(실내/실외) 데이터 로드:', type);
+                setEvents([]);
+                setFetchError('해당 장소 유형(실내/실외) 데이터 로드 로직이 아직 구현되지 않았습니다.');
             }
         } catch (error) {
-            console.error('백엔드 API 호출 실패:', error);
+            console.error('백엔드 호출 오류:', error);
             setFetchError('행사 목록을 불러오는 중 서버 오류가 발생했습니다.');
-
-            // API 호출 실패 시 Mock 데이터 사용 (Catch Block)
-            console.error('❌ 백엔드 API 호출 실패! Mock 데이터를 사용합니다.', error);
-            
-            // Mock 데이터에서 필터링
-            const filteredData = MOCK_FESTIVALS.filter(event => {
-                if (type === 'general' || type === 'all') return true;
-                if (type === 'indoor') {
-                    return event.type_info === '실내';
-                }
-                if (type === 'outdoor') {
-                    return event.type_info === '실외';
-                }
-                return true;
-            });
-
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            setFetchError(`[경고] 서버 연결 실패로 ${filteredData.length}개의 임시 Mock데이터 표시`);
-            setEvents(filteredData);
+            setEvents([]);
         } finally {
             setIsFetching(false);
         }
@@ -167,7 +89,7 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
 
     const handlePlaceTypeClick = (type) => {
         setSelectedPlaceType(type);
-        fetchEvents(type); // 즉시 새로운 타입으로 API 호출
+        fetchEvents(type); 
     };
 
     useEffect(() => {
