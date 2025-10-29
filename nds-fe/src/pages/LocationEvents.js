@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import axios from 'axios';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { useLocation } from 'react-router-dom';
+import EventDetailModal from '../components/features/EventDetailModal';
+import { getCurrentLocation } from '../utils/geolocation';
 import './LocationEvents.css'; 
 
 function LocationEvents() {
@@ -9,36 +12,184 @@ function LocationEvents() {
     const location = useLocation();
     const { state } = location;
     const { 
-        guName, 
-        latitude,
-        longitude
+        guName: initialGuName, 
+        latitude: initialLat,
+        longitude: initialLng
     } = state || {}; 
 
-    console.log('LocationEvents 페이지 로드 및 전달된 데이터:', state);
+    const [guName, setGuName] = useState(initialGuName || '위치 확인 중');
+    const [position, setPosition] = useState(() => ({
+        latitude: typeof initialLat === 'number' ? initialLat : null,
+        longitude: typeof initialLng === 'number' ? initialLng : null,
+    }));
+
+    const [events, setEvents] = useState([]);
+    const [isFetching, setIsFetching] = useState(false);
+    const [fetchError, setFetchError] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState(null);
 
     const handleBack = () => { window.location.href = '/'; };
 
+    const openModal = (event) => {
+        setSelectedEvent(event);
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedEvent(null);
+    };
+
+    const coordsReady = useMemo(() => typeof position.latitude === 'number' && typeof position.longitude === 'number', [position]);
+
+    // 현재 위치 확보 (state에 없으면 브라우저에서 획득)
+    useEffect(() => {
+        if (coordsReady) return;
+        (async () => {
+            try {
+                const current = await getCurrentLocation();
+                setPosition({ latitude: current.latitude, longitude: current.longitude });
+            } catch (err) {
+                console.error('현재 위치를 가져오지 못했습니다.', err);
+                setFetchError('현재 위치 권한이 필요합니다. 브라우저 위치 권한을 허용해 주세요.');
+            }
+        })();
+    }, [coordsReady]);
+
+    // 인근 행사 조회
+    const fetchNearbyEvents = useCallback(async (lat, lng) => {
+        setIsFetching(true);
+        setFetchError('');
+        setEvents([]);
+        try {
+            const apiUrl = `/api/festivals/nearby?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`;
+            const response = await axios.get(apiUrl);
+            if (!response?.data) {
+                setFetchError('서버 응답이 올바르지 않습니다.');
+                setEvents([]);
+                return;
+            }
+            const list = Array.isArray(response.data.data) ? response.data.data : [];
+            if (list.length === 0) {
+                setFetchError('주변 3km 이내에 추천할 행사가 없습니다.');
+                setEvents([]);
+            } else {
+                setEvents(list);
+            }
+        } catch (error) {
+            console.error('인근 행사 조회 실패:', error);
+            const msg = error?.response?.data?.error || error.message || '인근 행사 조회 중 오류가 발생했습니다.';
+            setFetchError(msg);
+            setEvents([]);
+        } finally {
+            setIsFetching(false);
+        }
+    }, []);
+
+    // 좌표 준비되면 이벤트 조회
+    useEffect(() => {
+        if (!coordsReady) return;
+        fetchNearbyEvents(position.latitude, position.longitude);
+    }, [coordsReady, position, fetchNearbyEvents]);
+
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50">
-            <Header currentLocation={guName || '위치 확인 중'} />
-            <main className="flex-grow p-4 md:p-8 max-w-6xl mx-auto w-full">
-                <button 
-                    className="back-button" 
-                    onClick={handleBack}
-                >
-                    ← 뒤로 가기
-                </button>
-                <div className="coming-soon-container">
-                    <div className="icon">📍</div>
-                    <h1>위치 기반 3km 이내 행사 추천</h1>
-                    <p>현재 위치: {guName || '데이터 수신 오류'}</p>
-                    <div className="status-box">🚧 기능 구현 준비 중입니다 🚧</div>
-                    <p className="description">이 페이지에서는 사용자 위치를 중심으로 가까운 순서대로 문화 행사를 필터링하여 보여줄 예정입니다.</p>
-                </div>
+        <div className="recommendation-events-page">
+            <Header currentLocation={guName} />
+            <main className="main-content">
+                <button className="back-button" onClick={handleBack}>← 뒤로 가기</button>
+                <h1 className="page-title">내 주변 3km 이내 행사</h1>
+
+                <section className="events-list-section">
+                    <div className="events-list-header">
+                        <h2 className="section-title">추천 행사 목록</h2>
+                    </div>
+
+                    {isFetching && (
+                        <div className="no-events">불러오는 중...</div>
+                    )}
+
+                    {!isFetching && fetchError && (
+                        <div className="no-events text-red-600 bg-red-50 border border-red-200 p-3 mb-4">
+                            {fetchError}
+                        </div>
+                    )}
+
+                    {!isFetching && !fetchError && (
+                        <div className="events-list-content">
+                            {events.length > 0 ? (
+                                <div className="events-grid">
+                                    {events.map(event => (
+                                        <NearbyEventCard key={event.id} event={event} onCardClick={openModal} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="no-events">표시할 행사가 없습니다.</div>
+                            )}
+                        </div>
+                    )}
+                </section>
             </main>
             <Footer />
+
+            <EventDetailModal 
+                isOpen={isModalOpen} 
+                onClose={closeModal} 
+                event={selectedEvent} 
+            />
         </div>
     );
 }
+
+// PlaceEvents와 동일한 카드 룩앤필 유지
+const NearbyEventCard = ({ event, onCardClick }) => {
+    const formatDate = (dateString) => {
+        if (!dateString) return '미정';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+    };
+
+    const startDate = formatDate(event.start_date);
+    const endDate = formatDate(event.end_date);
+
+    return (
+        <div 
+            className="event-card border rounded-lg shadow-sm bg-white hover:shadow-lg transition duration-200 cursor-pointer overflow-hidden"
+            onClick={() => onCardClick(event)}
+        >
+            <div className="relative h-40">
+                <img 
+                    src={event.main_image || "https://via.placeholder.com/600x400.png?text=No+Image"} 
+                    alt={event.event_name} 
+                    className="w-full h-full object-cover"
+                />
+                {event.distance && (
+                    <span className="absolute top-2 left-2 bg-black bg-opacity-60 text-white text-xs font-semibold px-2 py-0.5 rounded">
+                        {event.distance}km
+                    </span>
+                )}
+                <span className={`absolute top-2 right-2 text-xs font-semibold px-2 py-0.5 rounded ${
+                    event.type_info === '실내' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'
+                }`}>
+                    {event.type_info || '일반'}
+                </span>
+            </div>
+
+            <div className="p-4">
+                <p className="text-xs font-medium text-gray-500 mb-1">{event.category || '기타'}</p>
+                <h3 className="font-semibold text-gray-900 text-lg mb-1 line-clamp-2">
+                    {event.event_name}
+                </h3>
+                <div className="text-sm text-gray-600 mb-3">
+                    {startDate} ~ {endDate}
+                </div>
+                <div className="text-xs text-gray-700 space-y-1 border-t pt-2">
+                    <p>📍 {event.place} ({event.district})</p>
+                    <p className="text-blue-600">주최: {event.organizer || '미상'}</p>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export default LocationEvents;
