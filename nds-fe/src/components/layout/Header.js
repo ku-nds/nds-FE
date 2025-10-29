@@ -21,7 +21,7 @@ function Header({ onUserMenuClick, onNotificationClick, onSettingsClick, current
         )}
       </div>
       
-      <div className="header-right">
+      {/* <div className="header-right">
         <button 
           className="header-icon-btn"
           onClick={onNotificationClick}
@@ -43,7 +43,7 @@ function Header({ onUserMenuClick, onNotificationClick, onSettingsClick, current
         >
           👤
         </button>
-      </div>
+      </div> */}
     </header>
   );
 }
