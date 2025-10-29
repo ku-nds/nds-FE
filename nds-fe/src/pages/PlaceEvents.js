@@ -48,39 +48,46 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
         setSelectedEvent(null);
     };
 
-   
+
     
-    // ✅ CORS 프록시 설정을 고려하여 상대경로 사용
+    // fetch events: all | indoor | outdoor
     const fetchEvents = useCallback(async (type = 'all') => {
         setIsFetching(true);
         setFetchError('');
         setEvents([]);
 
         try {
-            if (type === 'all' || type === 'general') {
-                const apiUrl = '/api/festivals';
-                console.log('[API CALL] 전체 행사 요청:', apiUrl);
-                const response = await axios.get(apiUrl);
+            let apiUrl = '/api/festivals';
 
-                if (!response?.data) {
-                    setFetchError('서버 응답이 올바르지 않습니다.');
-                    setEvents([]);
-                } else if (response.data.count === 0 || (Array.isArray(response.data.data) && response.data.data.length === 0)) {
-                    setFetchError('선택한 조건에 맞는 행사가 없습니다.');
-                    setEvents([]);
-                } else {
-                    setEvents(response.data.data || []);
-                    setFetchError('');
-                }
+            if (type === 'all' || type === 'general') {
+                apiUrl = '/api/festivals';
+            } else if (type === 'indoor' || type === 'outdoor') {
+                // use type-based API (controller expects query param `type=indoor|outdoor`)
+                apiUrl = `/api/festivals/type?type=${encodeURIComponent(type)}`;
             } else {
-                // 실내/실외용 API는 추후 별도 구현 예정
-                console.log('[API CALL] 장소 유형별(실내/실외) 데이터 로드:', type);
+                // unknown type -> fallback to all
+                apiUrl = '/api/festivals';
+            }
+
+            console.log('[API CALL] 요청:', apiUrl);
+            const response = await axios.get(apiUrl);
+
+            // 응답 포맷: { count, data }
+            if (!response?.data) {
+                setFetchError('서버 응답이 올바르지 않습니다.');
                 setEvents([]);
-                setFetchError('해당 장소 유형(실내/실외) 데이터 로드 로직이 아직 구현되지 않았습니다.');
+            } else if (response.data.count === 0 || (Array.isArray(response.data.data) && response.data.data.length === 0)) {
+                setFetchError('선택한 조건에 맞는 행사가 없습니다.');
+                setEvents([]);
+            } else {
+                setEvents(response.data.data || []);
+                setFetchError('');
             }
         } catch (error) {
             console.error('백엔드 호출 오류:', error);
-            setFetchError('행사 목록을 불러오는 중 서버 오류가 발생했습니다.');
+            // 좀 더 상세한 에러 메시지(가능하면) 표시
+            const msg = error?.response?.data?.error || error.message || '행사 목록을 불러오는 중 서버 오류가 발생했습니다.';
+            setFetchError(msg);
             setEvents([]);
         } finally {
             setIsFetching(false);
