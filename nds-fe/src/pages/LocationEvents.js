@@ -4,7 +4,8 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { useLocation } from 'react-router-dom';
 import EventDetailModal from '../components/features/EventDetailModal';
-import { getCurrentLocation } from '../utils/geolocation';
+import Pagination from '../components/features/Pagination';
+import { getCurrentLocation, DEFAULT_LOCATION, DEFAULT_LOCATION_NAME } from '../utils/geolocation';
 import './LocationEvents.css'; 
 
 function LocationEvents() {
@@ -17,10 +18,10 @@ function LocationEvents() {
         longitude: initialLng
     } = state || {}; 
 
-    const [guName, setGuName] = useState(initialGuName || '위치 확인 중');
+    const [guName, setGuName] = useState(initialGuName || DEFAULT_LOCATION_NAME);
     const [position, setPosition] = useState(() => ({
-        latitude: typeof initialLat === 'number' ? initialLat : null,
-        longitude: typeof initialLng === 'number' ? initialLng : null,
+        latitude: typeof initialLat === 'number' ? initialLat : DEFAULT_LOCATION.latitude,
+        longitude: typeof initialLng === 'number' ? initialLng : DEFAULT_LOCATION.longitude,
     }));
 
     const [events, setEvents] = useState([]);
@@ -28,6 +29,9 @@ function LocationEvents() {
     const [fetchError, setFetchError] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState(null);
+    const [page, setPage] = useState(1);
+    const [limit] = useState(12);
+    const [totalPages, setTotalPages] = useState(0);
 
     const handleBack = () => { window.location.href = '/'; };
 
@@ -50,29 +54,32 @@ function LocationEvents() {
             try {
                 const current = await getCurrentLocation();
                 setPosition({ latitude: current.latitude, longitude: current.longitude });
+                setGuName(initialGuName || DEFAULT_LOCATION_NAME);
             } catch (err) {
                 console.error('현재 위치를 가져오지 못했습니다.', err);
-                setFetchError('현재 위치 권한이 필요합니다. 브라우저 위치 권한을 허용해 주세요.');
+                // 권한이 없거나 실패해도 기본 위치(건국대)로 동작
+                setPosition({ latitude: DEFAULT_LOCATION.latitude, longitude: DEFAULT_LOCATION.longitude });
+                setGuName(DEFAULT_LOCATION_NAME);
             }
         })();
     }, [coordsReady]);
 
     // 인근 행사 조회
-    const fetchNearbyEvents = useCallback(async (lat, lng) => {
+    const fetchNearbyEvents = useCallback(async (lat, lng, nextPage = 1) => {
         setIsFetching(true);
         setFetchError('');
         setEvents([]);
         try {
-            const BASE_URL = process.env.REACT_APP_API_URL; // 추가
-            const apiUrl = `${BASE_URL}/api/festivals/nearby?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`; // 템플릿 리터럴에 BASE_URL 추가
-
-            const response = await axios.get(apiUrl);
+            const apiUrl = `/api/festivals/nearby?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}&page=${encodeURIComponent(nextPage)}&limit=${encodeURIComponent(limit)}`;
+            const response = await axios.get(apiUrl);
             if (!response?.data) {
                 setFetchError('서버 응답이 올바르지 않습니다.');
                 setEvents([]);
                 return;
             }
             const list = Array.isArray(response.data.data) ? response.data.data : [];
+            setTotalPages(response.data.totalPages || 0);
+            setPage(response.data.page || nextPage);
             if (list.length === 0) {
                 setFetchError('주변 3km 이내에 추천할 행사가 없습니다.');
                 setEvents([]);
@@ -87,12 +94,12 @@ function LocationEvents() {
         } finally {
             setIsFetching(false);
         }
-    }, []);
+    }, [limit]);
 
     // 좌표 준비되면 이벤트 조회
     useEffect(() => {
         if (!coordsReady) return;
-        fetchNearbyEvents(position.latitude, position.longitude);
+        fetchNearbyEvents(position.latitude, position.longitude, 1);
     }, [coordsReady, position, fetchNearbyEvents]);
 
     return (
@@ -130,6 +137,7 @@ function LocationEvents() {
                             )}
                         </div>
                     )}
+                    <Pagination page={page} totalPages={totalPages} onChange={(p) => fetchNearbyEvents(position.latitude, position.longitude, p)} />
                 </section>
             </main>
             <Footer />

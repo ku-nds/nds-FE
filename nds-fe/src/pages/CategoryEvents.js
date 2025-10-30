@@ -4,6 +4,7 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { useLocation } from 'react-router-dom';
 import EventDetailModal from '../components/features/EventDetailModal';
+import Pagination from '../components/features/Pagination';
 import './CategoryEvents.css'; 
 
 function CategoryEvents() {
@@ -19,6 +20,9 @@ function CategoryEvents() {
     const [events, setEvents] = useState([]);
     const [isFetching, setIsFetching] = useState(false);
     const [fetchError, setFetchError] = useState('');
+    const [page, setPage] = useState(1);
+    const [limit] = useState(12);
+    const [totalPages, setTotalPages] = useState(0);
 
     // 모달 상태
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,24 +63,27 @@ function CategoryEvents() {
     ), []);
 
     // 카테고리별 조회
-    const fetchByCategory = useCallback(async (selected) => {
+    const fetchByCategory = useCallback(async (selected, nextPage = 1) => {
         setIsFetching(true);
         setFetchError('');
         setEvents([]);
         try {
-            const BASE_URL = process.env.REACT_APP_API_URL; 
-            const endpoint = '/api/festivals/category'; 
+            const endpoint = '/api/festivals/category';
+            const qsCategory = selected && selected !== '전체' ? `category=${encodeURIComponent(selected)}` : '';
+            const qsPage = `page=${encodeURIComponent(nextPage)}`;
+            const qsLimit = `limit=${encodeURIComponent(limit)}`;
+            const apiUrl = qsCategory
+                ? `${endpoint}?${qsCategory}&${qsPage}&${qsLimit}`
+                : `${endpoint}?${qsPage}&${qsLimit}`;
 
-            const apiUrl = selected && selected !== '전체' 
-                ? `${BASE_URL}${endpoint}?category=${encodeURIComponent(selected)}`
-                : `${BASE_URL}${endpoint}`; // 전체 조회 시에도 절대 경로 사용
-
-            const response = await axios.get(apiUrl);
+            const response = await axios.get(apiUrl);
             if (!response?.data) {
                 setFetchError('서버 응답이 올바르지 않습니다.');
                 return;
             }
             const list = Array.isArray(response.data.data) ? response.data.data : [];
+            setTotalPages(response.data.totalPages || 0);
+            setPage(response.data.page || nextPage);
             if (list.length === 0) {
                 setFetchError('선택한 카테고리에 해당하는 행사가 없습니다.');
                 setEvents([]);
@@ -91,11 +98,11 @@ function CategoryEvents() {
         } finally {
             setIsFetching(false);
         }
-    }, []);
+    }, [limit]);
 
     // 초기 진입 시 전체 보기
     useEffect(() => {
-        fetchByCategory('');
+        fetchByCategory('', 1);
     }, [fetchByCategory]);
 
     const onChangeCategory = (e) => {
@@ -104,12 +111,12 @@ function CategoryEvents() {
     };
 
     const onApplyFilter = () => {
-        fetchByCategory(category);
+        fetchByCategory(category, 1);
     };
 
     const onClearFilter = () => {
         setCategory('');
-        fetchByCategory('');
+        fetchByCategory('', 1);
     };
 
     return (
@@ -169,6 +176,7 @@ function CategoryEvents() {
                             </button>
                         </div>
                     </div>
+                    <Pagination page={page} totalPages={totalPages} onChange={(p) => fetchByCategory(category, p)} />
                 </section>
 
                 {/* 2. 결과 리스트 */}

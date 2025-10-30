@@ -4,6 +4,7 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { useLocation } from 'react-router-dom';
 import EventDetailModal from '../components/features/EventDetailModal';
+import Pagination from '../components/features/Pagination';
 import './PlaceEvents.css';
 
 
@@ -28,6 +29,9 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
     const [events, setEvents] = useState([]); // 행사 목록 상태
     const [isFetching, setIsFetching] = useState(false); // 이벤트 목록 로딩 상태
     const [fetchError, setFetchError] = useState(''); // 이벤트 목록 에러 상태
+    const [page, setPage] = useState(1);
+    const [limit] = useState(12);
+    const [totalPages, setTotalPages] = useState(0);
 
     const [selectedPlaceType, setSelectedPlaceType] = useState('all');
 
@@ -51,28 +55,24 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
 
     
     // fetch events: all | indoor | outdoor
-    const fetchEvents = useCallback(async (type = 'all') => {
+    const fetchEvents = useCallback(async (type = 'all', nextPage = 1) => {
         setIsFetching(true);
         setFetchError('');
         setEvents([]);
 
         try {
-            const BASE_URL = process.env.REACT_APP_API_URL; // 추가
-            let apiUrl = '';
+            let apiUrl = '';
 
-            if (type === 'all' || type === 'general') {
-                // BASE_URL 사용
-                apiUrl = `${BASE_URL}/api/festivals`;
-            } else if (type === 'indoor' || type === 'outdoor') {
-                // BASE_URL 사용
-                apiUrl = `${BASE_URL}/api/festivals/type?type=${encodeURIComponent(type)}`;
-            } else {
-                // BASE_URL 사용
-                apiUrl = `${BASE_URL}/api/festivals`;
-            }
+            if (type === 'all' || type === 'general') {
+                apiUrl = `/api/festivals?page=${encodeURIComponent(nextPage)}&limit=${encodeURIComponent(limit)}`;
+            } else if (type === 'indoor' || type === 'outdoor') {
+                apiUrl = `/api/festivals/type?type=${encodeURIComponent(type)}&page=${encodeURIComponent(nextPage)}&limit=${encodeURIComponent(limit)}`;
+            } else {
+                apiUrl = `/api/festivals?page=${encodeURIComponent(nextPage)}&limit=${encodeURIComponent(limit)}`;
+            }
 
-            console.log('[API CALL] 요청:', apiUrl);
-            const response = await axios.get(apiUrl);
+            console.log('[API CALL] 요청:', apiUrl);
+            const response = await axios.get(apiUrl);
 
             // 응답 포맷: { count, data }
             if (!response?.data) {
@@ -83,6 +83,8 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
                 setEvents([]);
             } else {
                 setEvents(response.data.data || []);
+                setTotalPages(response.data.totalPages || 0);
+                setPage(response.data.page || nextPage);
                 setFetchError('');
             }
         } catch (error) {
@@ -94,7 +96,7 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
         } finally {
             setIsFetching(false);
         }
-    }, []);
+    }, [limit]);
 
     const handlePlaceTypeClick = (type) => {
         setSelectedPlaceType(type);
@@ -130,7 +132,7 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
         //초기 상태 설정
         setSelectedPlaceType(initialType);
         //초기 데이터 호출 실행
-        fetchEvents(initialType);
+        fetchEvents(initialType, 1);
         //초기 로딩 상태 종료
         setIsLoading(false);
 
@@ -205,6 +207,7 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
                         <span className="recommendation-icon">{recommendation.icon}</span>
                         <span className="recommendation-text">{recommendation.text}</span>
                     </div>
+                    <Pagination page={page} totalPages={totalPages} onChange={(p) => fetchEvents(selectedPlaceType === 'all' ? 'general' : selectedPlaceType, p)} />
                 </section>
 
                 {/* 2. 장소 유형 선택 섹션 (핵심 기능) */}
