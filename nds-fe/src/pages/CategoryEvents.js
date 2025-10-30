@@ -64,14 +64,14 @@ function CategoryEvents() {
         setFetchError('');
         setEvents([]);
         try {
-            // 백엔드 라우팅 컨벤션을 기존과 맞춰 /api/festivals/category 사용
-            // category 쿼리가 비어있으면 전체 목록 반환
-            const baseUrl = '/api/festivals/category';
-            const apiUrl = selected && selected !== '전체' 
-                ? `${baseUrl}?category=${encodeURIComponent(selected)}`
-                : baseUrl;
+            const BASE_URL = process.env.REACT_APP_API_URL; 
+            const endpoint = '/api/festivals/category'; 
 
-            const response = await axios.get(apiUrl);
+            const apiUrl = selected && selected !== '전체' 
+                ? `${BASE_URL}${endpoint}?category=${encodeURIComponent(selected)}`
+                : `${BASE_URL}${endpoint}`; // 전체 조회 시에도 절대 경로 사용
+
+            const response = await axios.get(apiUrl);
             if (!response?.data) {
                 setFetchError('서버 응답이 올바르지 않습니다.');
                 return;

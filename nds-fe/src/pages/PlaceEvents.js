@@ -57,20 +57,22 @@ function PlaceTypeEvents() { // 컴포넌트 이름을 PlaceTypeEvents로 명확
         setEvents([]);
 
         try {
-            let apiUrl = '/api/festivals';
+            const BASE_URL = process.env.REACT_APP_API_URL; // 추가
+            let apiUrl = '';
 
-            if (type === 'all' || type === 'general') {
-                apiUrl = '/api/festivals';
-            } else if (type === 'indoor' || type === 'outdoor') {
-                // use type-based API (controller expects query param `type=indoor|outdoor`)
-                apiUrl = `/api/festivals/type?type=${encodeURIComponent(type)}`;
-            } else {
-                // unknown type -> fallback to all
-                apiUrl = '/api/festivals';
-            }
+            if (type === 'all' || type === 'general') {
+                // BASE_URL 사용
+                apiUrl = `${BASE_URL}/api/festivals`;
+            } else if (type === 'indoor' || type === 'outdoor') {
+                // BASE_URL 사용
+                apiUrl = `${BASE_URL}/api/festivals/type?type=${encodeURIComponent(type)}`;
+            } else {
+                // BASE_URL 사용
+                apiUrl = `${BASE_URL}/api/festivals`;
+            }
 
-            console.log('[API CALL] 요청:', apiUrl);
-            const response = await axios.get(apiUrl);
+            console.log('[API CALL] 요청:', apiUrl);
+            const response = await axios.get(apiUrl);
 
             // 응답 포맷: { count, data }
             if (!response?.data) {

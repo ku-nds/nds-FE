@@ -63,8 +63,10 @@ function LocationEvents() {
         setFetchError('');
         setEvents([]);
         try {
-            const apiUrl = `/api/festivals/nearby?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`;
-            const response = await axios.get(apiUrl);
+            const BASE_URL = process.env.REACT_APP_API_URL; // 추가
+            const apiUrl = `${BASE_URL}/api/festivals/nearby?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`; // 템플릿 리터럴에 BASE_URL 추가
+
+            const response = await axios.get(apiUrl);
             if (!response?.data) {
                 setFetchError('서버 응답이 올바르지 않습니다.');
                 setEvents([]);
