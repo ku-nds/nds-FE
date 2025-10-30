@@ -1,3 +1,9 @@
+export const DEFAULT_LOCATION = {
+  latitude: 37.5407,
+  longitude: 127.0702,
+};
+
+export const DEFAULT_LOCATION_NAME = '서울특별시 광진구 건국대학교';
 
 const REST_API_KEY = process.env.REACT_APP_KAKAO_REST_API_KEY;
 
@@ -42,9 +48,8 @@ export const reverseGeocode = async (latitude, longitude) => {
     console.log('역지오코딩 시도:', latitude, longitude);
     
     if (!REST_API_KEY || REST_API_KEY === 'YOUR_KAKAO_REST_API_KEY') {
-      console.warn('⚠️ Kakao REST API 키가 설정되지 않았습니다. 목업 주소를 사용합니다.');
-      // API 키가 없으면 목업 데이터 반환
-      return '서울특별시 강남구 역삼동 (Mock)'; 
+      console.warn('⚠️ Kakao REST API 키가 설정되지 않았습니다. 기본 위치명을 사용합니다.');
+      return DEFAULT_LOCATION_NAME; 
     }
 
     // Kakao REST API 호출: 좌표를 행정 구역 코드로 변환 (coord2regioncode)
@@ -72,15 +77,14 @@ export const reverseGeocode = async (latitude, longitude) => {
       }
     }
 
-    // 결과가 없으면 좌표로 표시
-    const location = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-    console.warn('역지오코딩 결과 없음, 좌표로 표시:', location);
-    return location;
+    // 결과가 없으면 기본 위치명 반환
+    console.warn('역지오코딩 결과 없음, 기본 위치명 사용');
+    return DEFAULT_LOCATION_NAME;
 
   } catch (error) {
     console.error('역지오코딩 실패:', error);
-    // 에러 발생 시 좌표 반환
-    return `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+    // 에러 발생 시 기본 위치명 반환
+    return DEFAULT_LOCATION_NAME;
   }
 };
 
