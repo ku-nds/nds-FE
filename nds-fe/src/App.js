@@ -5,17 +5,20 @@ import RecommendationEvents from './pages/PlaceEvents';
 import LocationEvents from './pages/LocationEvents';
 import CategoryEvents from './pages/CategoryEvents';
 import './App.css';
+import { AppProvider } from './context/AppContext';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<CulturalEventCuration />} />
-        <Route path="/events/place-type" element={<RecommendationEvents />} />
-        <Route path="/events/location" element={<LocationEvents />} />
-        <Route path="/events/category" element={<CategoryEvents />} />
-      </Routes>
-    </Router>
+    <AppProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<CulturalEventCuration />} />
+          <Route path="/events/place-type" element={<RecommendationEvents />} />
+          <Route path="/events/location" element={<LocationEvents />} />
+          <Route path="/events/category" element={<CategoryEvents />} />
+        </Routes>
+      </Router>
+    </AppProvider>
   );
 }
 

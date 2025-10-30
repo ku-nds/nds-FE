@@ -1,12 +1,18 @@
 import axios from 'axios';
 
-// Axios 인스턴스 생성
+const BASE_URL = process.env.REACT_APP_API_URL;
+
+if (!BASE_URL) {
+  // 개발 중 환경변수 누락 확인용 경고
+  // eslint-disable-next-line no-console
+  console.warn('REACT_APP_API_URL is not defined');
+}
+
 const axiosClient = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api',
+  baseURL: BASE_URL,
+  withCredentials: false,
+  headers: { 'Content-Type': 'application/json' },
   timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 // Request Interceptor - 요청 전 처리
