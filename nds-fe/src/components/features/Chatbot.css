@@ -14,7 +14,7 @@
   height: 60px;
   font-size: 28px;
   cursor: pointer;
-  box-shadow: 0 4px M(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   transition: transform 0.2s;
   display: flex;
   justify-content: center;
@@ -72,21 +72,21 @@
   gap: 12px;
 }
 
-.message {
+.chatbot-message {
   padding: 10px 15px;
   border-radius: 18px;
   max-width: 80%;
   word-wrap: break-word;
 }
 
-.message.user {
+.chatbot-message.user {
   background-color: #007bff;
   color: white;
   align-self: flex-end;
   border-bottom-right-radius: 4px;
 }
 
-.message.bot {
+.chatbot-message.bot {
   background-color: #f1f1f1;
   color: #1a1a1a;
   align-self: flex-start;
