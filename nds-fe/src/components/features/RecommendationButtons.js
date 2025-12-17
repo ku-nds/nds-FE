@@ -49,6 +49,15 @@ function RecommendationButtons({ weatherData, guName, latitude, longitude, regio
           <h3 className="card-title">행사 카테고리</h3>
           <p className="card-description">관심 분야별 맞춤 추천</p>
         </div>
+
+        <div 
+          className="recommendation-card yellow" 
+          onClick={() => handleCardClick('shortest-path')}
+        >
+          <div className="card-icon">🗺️</div>
+          <h3 className="card-title">최단 경로</h3>
+          <p className="card-description">선택한 축제들 간의 최단 경로를 찾아드립니다.</p>
+        </div>
       </div>
     </section>
   );

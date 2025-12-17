@@ -7,6 +7,8 @@ import CategoryEvents from './pages/CategoryEvents';
 import './App.css';
 import { AppProvider } from './context/AppContext';
 
+import ShortestPathPage from './pages/ShortestPathPage';
+
 function App() {
   return (
     <AppProvider>
@@ -16,6 +18,7 @@ function App() {
           <Route path="/events/place-type" element={<RecommendationEvents />} />
           <Route path="/events/location" element={<LocationEvents />} />
           <Route path="/events/category" element={<CategoryEvents />} />
+          <Route path="/events/shortest-path" element={<ShortestPathPage />} />
         </Routes>
       </Router>
     </AppProvider>

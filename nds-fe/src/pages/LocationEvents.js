@@ -1,19 +1,19 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import axiosClient from '../api/axiosClient';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { useLocation } from 'react-router-dom';
 import EventDetailModal from '../components/features/EventDetailModal';
 import Pagination from '../components/features/Pagination';
-import { useAppContext } from '../context/AppContext'; // ✅ 추가
+import { useAppContext } from '../context/AppContext';
+import NearbyEventCard from '../components/features/NearbyEventCard';
 import './LocationEvents.css'; 
 
 function LocationEvents() {
   const location = useLocation();
   const { state } = location;
-  const { position: globalPosition } = useAppContext(); // ✅ Context 가져오기
+  const { position: globalPosition } = useAppContext();
 
-  // ✅ Context fallback
   const latitude = state?.latitude || globalPosition?.latitude;
   const longitude = state?.longitude || globalPosition?.longitude;
   const guName = state?.guName || globalPosition?.guName || '서울특별시 광진구';
@@ -58,11 +58,17 @@ function LocationEvents() {
       <main className="main-content">
         <button className="back-button" onClick={handleBack}>← 뒤로 가기</button>
         <h1 className="page-title">내 주변 3km 이내 행사</h1>
+        
         <section className="events-list-section">
           {isFetching ? <div className="no-events">불러오는 중...</div> : (
             fetchError ? <div className="no-events">{fetchError}</div> :
             <div className="events-grid">
-              {events.length > 0 ? events.map(e => <NearbyEventCard key={e.id} event={e} onCardClick={openModal} />) :
+              {events.length > 0 ? events.map(e => 
+                <NearbyEventCard 
+                  key={e.id} 
+                  event={e} 
+                  onCardClick={openModal} 
+                />) :
               <div className="no-events">표시할 행사가 없습니다.</div>}
             </div>
           )}
@@ -74,23 +80,5 @@ function LocationEvents() {
     </div>
   );
 }
-
-const NearbyEventCard = ({ event, onCardClick }) => (
-  <div className="event-card border rounded-lg shadow-sm bg-white hover:shadow-lg transition duration-200 cursor-pointer overflow-hidden"
-    onClick={() => onCardClick(event)}>
-    <div className="relative h-40">
-      <img src={event.main_image || "https://via.placeholder.com/600x400.png?text=No+Image"} alt={event.event_name} className="w-full h-full object-cover" />
-      {event.distance && (
-        <span className="absolute top-2 left-2 bg-black bg-opacity-60 text-white text-xs font-semibold px-2 py-0.5 rounded">
-          {event.distance}km
-        </span>
-      )}
-    </div>
-    <div className="p-4">
-      <h3 className="font-semibold">{event.event_name}</h3>
-      <p className="text-xs text-gray-700">{event.place}</p>
-    </div>
-  </div>
-);
 
 export default LocationEvents;
