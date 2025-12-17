@@ -8,6 +8,7 @@ import './App.css';
 import { AppProvider } from './context/AppContext';
 
 import ShortestPathPage from './pages/ShortestPathPage';
+import Chatbot from './components/features/Chatbot';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/events/shortest-path" element={<ShortestPathPage />} />
         </Routes>
       </Router>
+      <Chatbot />
     </AppProvider>
   );
 }
