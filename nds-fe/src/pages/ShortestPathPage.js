@@ -6,14 +6,17 @@ import Footer from '../components/layout/Footer';
 import ShortestPathPlanner from '../components/features/ShortestPathPlanner';
 import KakaoMap from '../components/features/KakaoMap';
 import Pagination from '../components/features/Pagination';
+import EventCard from '../components/features/EventCard';
 import './ShortestPathPage.css';
+
+// ... (rest of the component is the same until the render method)
 
 function ShortestPathPage() {
   const [events, setEvents] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
   const [fetchError, setFetchError] = useState('');
   const [page, setPage] = useState(1);
-  const [limit] = useState(20);
+  const [limit] = useState(12); // Adjusted for card layout
   const [totalPages, setTotalPages] = useState(0);
   const [selectedFestivals, setSelectedFestivals] = useState([]);
   const [shortestPath, setShortestPath] = useState(null);
@@ -22,6 +25,7 @@ function ShortestPathPage() {
 
   const fetchAllEvents = useCallback(async (nextPage = 1) => {
     setIsFetching(true);
+    setFetchError('');
     try {
       const params = { page: nextPage, limit };
       const response = await axiosClient.get('/api/festivals', { params });
@@ -69,6 +73,12 @@ function ShortestPathPage() {
 
   const handleBack = () => window.location.href = '/';
 
+  const formatDate = (start, end) => {
+    if (!start && !end) return '날짜 정보 없음';
+    if (start && end) return `${start} ~ ${end}`;
+    return start || end;
+  };
+
   return (
     <div className="shortest-path-page">
       <Header />
@@ -95,18 +105,38 @@ function ShortestPathPage() {
           <h2>축제 선택</h2>
           {isFetching ? <div className="loading">불러오는 중...</div> : (
             fetchError ? <div className="error">{fetchError}</div> :
-            <div className="events-list">
-              {events.map(event => (
-                <div key={event.id} className="event-item">
-                  <input
-                    type="checkbox"
-                    id={`festival-${event.id}`}
-                    checked={selectedFestivals.includes(event.id)}
-                    onChange={() => handleSelectFestival(event.id)}
-                  />
-                  <label htmlFor={`festival-${event.id}`}>{event.event_name}</label>
-                </div>
-              ))}
+            <div className="events-grid">
+              {events.map(event => {
+                const isSelected = selectedFestivals.includes(event.id);
+                const eventForCard = {
+                  image: event.main_image || 'https://via.placeholder.com/300x200?text=No+Image',
+                  category: event.category || '기타',
+                  isIndoor: event.type_info === '실내',
+                  title: event.event_name,
+                  location: event.place || '장소 정보 없음',
+                  date: formatDate(event.start_date, event.end_date),
+                  time: event.datetime_info || '',
+                };
+
+                return (
+                  <div
+                    key={event.id}
+                    className={`selectable-event-card ${isSelected ? 'selected' : ''}`}
+                    onClick={() => handleSelectFestival(event.id)}
+                  >
+                    <EventCard event={eventForCard} />
+                    <div className="selection-overlay">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        readOnly
+                        className="event-checkbox"
+                      />
+                      <span className="selection-check">✔</span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
           <Pagination page={page} totalPages={totalPages} onChange={(p) => fetchAllEvents(p)} />

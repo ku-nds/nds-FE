@@ -41,7 +41,7 @@
 }
 
 .category-badge {
-  background: #2196F3;
+  background: #007BFF;
   color: white;
   padding: 6px 12px;
   border-radius: 20px;
@@ -58,8 +58,8 @@
 }
 
 .indoor-badge.outdoor {
-  background: rgba(76, 175, 80, 0.95);
-  color: white;
+  background: #f0f0f0;
+  color: #007BFF;
 }
 
 .event-details {
@@ -105,7 +105,7 @@
 }
 
 .info-row.distance {
-  color: #2196F3;
+  color: #007BFF;
   font-weight: 500;
 }
 
