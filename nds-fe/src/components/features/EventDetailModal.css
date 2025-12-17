@@ -126,6 +126,13 @@
 .modal-description { color: #374151; line-height: 1.7; }
 .modal-link { color: #2563eb; text-decoration: underline; }
 
+.amenities-controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:8px }
+.amenity-label { font-size:13px; color:#374151; display:flex; align-items:center; gap:8px }
+.amenity-radius-input { width:100px; padding:6px; border-radius:6px; border:1px solid #e6e9ef }
+.amenity-checkbox { font-size:13px; color:#374151; display:flex; align-items:center; gap:6px }
+.amenities-summary { font-size:13px; color:#374151; margin-bottom:8px }
+.amenities-map { width:100%; height:320px; border-radius:8px; overflow:hidden }
+
 /* Footer */
 .event-modal-footer {
   display: flex;
