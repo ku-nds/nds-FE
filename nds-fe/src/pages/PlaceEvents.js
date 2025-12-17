@@ -72,7 +72,7 @@ function PlaceTypeEvents() {
       return;
     }
 
-    const pm10Value = weatherData.pm10 || 0;
+    const pm10Value = weatherData?.pm10 || 0;
     const initialType = pm10Value >= 81 ? 'indoor' : 'outdoor';
     setSelectedPlaceType(initialType);
     fetchEvents(initialType, 1);
@@ -87,7 +87,7 @@ function PlaceTypeEvents() {
   if (isLoading) return <div className="min-h-screen flex justify-center items-center">로딩 중...</div>;
 
   const getRecommendationMessage = () => {
-    const pm10Value = weatherData?.pm10 || 0;
+    const pm10Value = weatherData?.pm10 ?? 0;
     return pm10Value >= 81
       ? { text: '🌫️ 대기질이 좋지 않습니다. 실내 행사 추천', color: 'bg-red-50' }
       : { text: '☀️ 대기질이 좋습니다! 실외 행사 추천', color: 'bg-green-50' };
@@ -107,9 +107,9 @@ function PlaceTypeEvents() {
           <h2 className="section-title">현재 대기질 정보</h2>
           <div className="air-quality-card">
             <div className="air-quality-item"><span className="label">측정소</span><span className="value">{`${region} ${gu}`}</span></div>
-            <div className="air-quality-item"><span className="label">미세먼지</span><span className="value">{weatherData.pm10}µg/m²</span></div>
-            <div className="air-quality-item"><span className="label">초미세먼지</span><span className="value">{weatherData.pm2_5}µg/m²</span></div>
-            <div className="air-quality-item"><span className="label">대기질</span><span className="value" style={{ color: weatherData.airQualityColor }}>{weatherData.airQuality}</span></div>
+            <div className="air-quality-item"><span className="label">미세먼지</span><span className="value">{weatherData?.pm10 ?? '-'}µg/m²</span></div>
+            <div className="air-quality-item"><span className="label">초미세먼지</span><span className="value">{weatherData?.pm2_5 ?? '-'}µg/m²</span></div>
+            <div className="air-quality-item"><span className="label">대기질</span><span className="value" style={{ color: weatherData?.airQualityColor || 'inherit' }}>{weatherData?.airQuality ?? '-'}</span></div>
           </div>
           <div className={`recommendation-banner ${recommendation.color}`}>
             <span>{recommendation.text}</span>
