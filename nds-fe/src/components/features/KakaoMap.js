@@ -30,6 +30,17 @@ const KakaoMap = ({ path, className }) => {
           title: point.event_name,
         });
         marker.setMap(map);
+
+        const content = `<div style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background-color:#d9534f;color:white;font-size:14px;font-weight:bold;">${index + 1}</div>`;
+
+        const customOverlay = new kakao.maps.CustomOverlay({
+            position: latlng,
+            content: content,
+            yAnchor: 3, // Position the overlay above the marker
+        });
+
+        customOverlay.setMap(map);
+
         bounds.extend(latlng);
       });
 
