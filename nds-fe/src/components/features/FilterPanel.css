@@ -43,13 +43,13 @@
 .map-view-btn:hover,
 .advanced-filter-btn:hover {
   background-color: #f8f8f8;
-  border-color: #2196F3;
+  border-color: #007BFF;
 }
 
 .filter-btn.active {
-  background-color: #2196F3;
+  background-color: #007BFF;
   color: white;
-  border-color: #2196F3;
+  border-color: #007BFF;
 }
 
 .filter-icon,

@@ -31,18 +31,7 @@
   color: white;
   min-height: 200px;
   justify-content: center;
-}
-
-.recommendation-card.blue {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.recommendation-card.green {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-}
-
-.recommendation-card.purple {
-  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  background: linear-gradient(135deg, #007BFF 0%, #0056b3 100%);
 }
 
 .recommendation-card:hover {
@@ -102,8 +91,4 @@
   .card-description {
     font-size: 13px;
   }
-}
-
-.recommendation-card.yellow {
-  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
 }

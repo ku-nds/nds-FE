@@ -20,12 +20,12 @@
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #007BFF 0%, #0056b3 100%);
   border-radius: 20px;
   color: white;
   font-size: 13px;
   font-weight: 500;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
 }
 
 .location-badge-icon {
